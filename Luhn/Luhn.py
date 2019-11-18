@@ -1,6 +1,30 @@
-def main():
-    print("Im a dumbass")
+import regex as re
 
+def luhn(card_number):
+    print(card_number)
+    sum = 0
+    xpos = None
+    for i, char in enumerate(card_number[::-1]):
+        if re.search(r'\d', char):
+            num = (1 + (i%2)) * int(char)
+            if num > 9:
+                sum += int(str(num)[0]) + int(str(num)[1])
+            else:
+                sum += num
+        else:
+            xpos = i
+
+        
+    return str(int(10 - (sum % 10) / (1 + (xpos%2))))
+    
 
 if __name__ == "__main__":
-    main()
+    f = open("data", "r")
+    data = f.read().split()
+    f.close()
+
+    output = ""
+    for row in data[:5]:
+        # print(row)
+        output += luhn(row)
+    print("Output: " + output)

@@ -13,7 +13,7 @@ def luhn(card_number):
         else:
             xpos = i
 
-    rest = (10 - (sum%10))
+    rest = (10 - (sum%10))%10
 
     # if xpos is a double spot and the rest is odd, then it must be a sum
     if xpos%2 == 1 and rest%2 == 1:
@@ -30,4 +30,4 @@ if __name__ == "__main__":
     for row in data:
         output += luhn(row)
     print("Output:", output)
-    print("Length of output(should be 100):", len(output))
+    print("Length of output:", len(output))

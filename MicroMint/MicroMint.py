@@ -9,10 +9,10 @@ u = 16
 k = 2
 
 # coins to generate
-c = 100
+c = 10000
 
 # acceptable standard deviation
-s = 24
+s = 22
 
 def main():
 
@@ -79,7 +79,8 @@ def find_collisions():
         coin_dict[i] = coin_dict.get(i, 0) + 1
         iterations += 1
 
-        if coin_dict[i] >= k:
+        # collisions should only happen once per bucket, then the bucket is spent (no need to reset, the statement only happens once per bucket)
+        if coin_dict[i] == k:
             collisions += 1
 
     return iterations

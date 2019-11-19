@@ -3,16 +3,16 @@ from random import random
 coin_dict = {}
 
 # bits per coin
-u = 16
+u = 20
 
 # pre-images needed per coin (bucket depth)
-k = 2
+k = 7
 
 # coins to generate
 c = 10000
 
 # acceptable standard deviation
-s = 22
+s = 4783
 
 def main():
 
@@ -49,7 +49,7 @@ def main():
         coin_dict.clear()
 
 
-        if epochs%100 == 0:
+        if epochs%1 == 0:
             print("Current deviation: " + str(s_current))
 
         if s_current < s and ran:

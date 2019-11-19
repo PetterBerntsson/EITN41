@@ -9,19 +9,67 @@ u = 16
 k = 2
 
 # coins to generate
-c = 10000
+c = 100
 
+# acceptable standard deviation
+s = 24
 
 def main():
-    # buckets to generate
-    b = 2**u
+
+    s_current = 0
+    epochs = 0
+    data = []
+    mean = 0
+    sum = 0
+    ran = False
+
+    while True:
+
+        epochs += 1
+        data_point = find_collisions()
+
+        if epochs == 1:
+            data.append(data_point)
+            sum += data_point
+            epochs += 1
+            data_point = find_collisions()
+
+        data.append(data_point)
+
+        sum += data_point
+        mean = sum/epochs
 
 
-    find_collisions()
+        sum_s = 0
+        for x in data:
+            sum_s += (x - mean)**2
+
+        temp = ((sum_s/(epochs-1))**0.5)
+        s_current = 3.66*temp/(epochs**0.5)
+        coin_dict.clear()
+
+
+        if epochs%100 == 0:
+            print("Current deviation: " + str(s_current))
+
+        if s_current < s and ran:
+
+            print("\n")
+            print("------------------------------------------------------")
+
+            print("mean iterations: " + str(mean))
+            print("standard deviation: " + str(s_current))
+            print("epochs: " + str(epochs))
+            break
+
+        ran = True
+
+
 
 
 
 def find_collisions():
+    # buckets to generate
     b = 2 ** u
 
     collisions = 0
@@ -29,13 +77,12 @@ def find_collisions():
     while collisions < c:
         i = int(random() * b)
         coin_dict[i] = coin_dict.get(i, 0) + 1
-        iterations = iterations + 1
+        iterations += 1
 
         if coin_dict[i] >= k:
-            collisions = collisions + 1
+            collisions += 1
 
-    print("coins found: " + str(collisions))
-    print("iterations: " + str(iterations))
+    return iterations
 
 if __name__ == "__main__":
     main()

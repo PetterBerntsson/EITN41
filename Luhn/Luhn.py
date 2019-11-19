@@ -1,4 +1,4 @@
-import regex as re
+import re
 
 def luhn(card_number):
     sum = 0

@@ -1,7 +1,6 @@
 import regex as re
 
 def luhn(card_number):
-    print(card_number)
     sum = 0
     xpos = None
     for i, char in enumerate(card_number[::-1]):
@@ -14,9 +13,13 @@ def luhn(card_number):
         else:
             xpos = i
 
+    rest = (10 - (sum%10))
+
+    # if xpos is a double spot and the rest is odd, then it must be a sum
+    if xpos%2 == 1 and rest%2 == 1:
+        rest = int("1" + str(rest - 1))
         
-    return str(int(10 - (sum % 10) / (1 + (xpos%2))))
-    
+    return str(int(rest / (1 + (xpos%2))))
 
 if __name__ == "__main__":
     f = open("data", "r")
@@ -24,7 +27,7 @@ if __name__ == "__main__":
     f.close()
 
     output = ""
-    for row in data[:5]:
-        # print(row)
+    for row in data:
         output += luhn(row)
-    print("Output: " + output)
+    print("Output:", output)
+    print("Length of output(should be 100):", len(output))

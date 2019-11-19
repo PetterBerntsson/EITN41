@@ -1,5 +1,6 @@
 import re
 
+#krabbor e goa
 def luhn(card_number):
     sum = 0
     for i, char in enumerate(card_number[::-1]):

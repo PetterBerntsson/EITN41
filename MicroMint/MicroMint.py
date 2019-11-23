@@ -48,7 +48,7 @@ def main():
         s_current = 3.66*temp/(epochs**0.5)
         coin_dict.clear()
 
-
+        # set to appropriate amount, the smaller test cases %100, bigger cases %10 or %1
         if epochs%1 == 0:
             print("Current deviation: " + str(s_current))
 

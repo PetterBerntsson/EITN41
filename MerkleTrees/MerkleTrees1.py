@@ -75,7 +75,7 @@ def getPathNode(tree, leafIndex, nodeIndex):
     node = tree[leafIndex]
     merklepath = []
     while node.parent != None:
-        merklepath.append(node.pos + node.name)
+        merklepath.append(node.sibling.pos + node.sibling.name)
         node = node.parent
     print(merklepath)
     return merklepath[::-1][nodeIndex - 1]

@@ -23,48 +23,51 @@ def fullnode(file):
 
     leaves = [Node(name) for name in data]
 
-    buildTree(leaves)
-    return leaves
+    root = buildTree(leaves)
+    return leaves, root
 
 def buildTree(layerNodes):
+    if len(layerNodes) == 1:
+        return layerNodes[0].name
     nodes = layerNodes.copy()
     nextGen = []
-    if len(nodes) == 1:
-        return
     while len(nodes) > 0:
         if len(nodes) == 1:
             l = nodes.pop(0)
-            r = l
-            l.setPos("(pos n/a)") # only child
+            r = Node(l.name)
         else:
             l = nodes.pop(0)
             r = nodes.pop(0)
-            l.setPos("L")
-            r.setPos("R")
-        
+        l.setPos("L")
+        l.setSibling(r)
+        r.setPos("R")
+        r.setSibling(l)
 
         parent = genParent(l.name, r.name)
         l.setParent(parent)
         r.setParent(parent)
         nextGen.append(parent)
 
-    buildTree(nextGen)
+    return buildTree(nextGen)
 
 def genParent(childL, childR):
     return Node(hashlib.sha1(bytearray.fromhex(childL + childR)).hexdigest())
-       
 
 class Node:
     def __init__(self, name):
         self.name = name
         self.parent = None
         self.pos = ""
+        self.sibling = None
 
     def setParent(self, name):
         self.parent = name
 
     def setPos(self, pos):
         self.pos = pos
+
+    def setSibling(self, node):
+        self.sibling = node
 
 # för skojs skull ------------------------------------
 def printTree(nodes):
@@ -78,7 +81,7 @@ def printLayer(nodes, level, indent):
     layer = "" + indent * level
     nextLayer = []
     for i, node in enumerate(nodes):
-        layer += "    " + node.pos + node.name + "    "
+        layer += "    " + node.pos + node.name
         if i%2 == 0:
             nextLayer.append(node.parent)
     level += 1
@@ -87,7 +90,10 @@ def printLayer(nodes, level, indent):
 # ----------------------------------------------------
 
 if __name__ == "__main__":
+    # part 1
     # print("Merkle root:", spv("data"))
 
-    tree = fullnode("fullnode_data")
+    # part 2
+    tree, root = fullnode("fullnode_data")
     printTree(tree)
+    print("\nRoot:", root)

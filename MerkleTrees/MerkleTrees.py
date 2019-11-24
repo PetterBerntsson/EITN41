@@ -1,6 +1,6 @@
 import hashlib
 
-
+# This function didn't produce the correct result, check MerkleTrees1 SPV method for correct result
 def MerklePath():
 
     f = open("data", "r")

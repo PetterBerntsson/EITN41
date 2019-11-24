@@ -4,7 +4,7 @@ def readFile(file):
     with open(file, "r") as f:
         return f.read().split()
 
-# part 1
+# ------------------------------------ PART 1 -------------------------------------------------
 def spv(file):
     data = readFile(file)
     
@@ -15,7 +15,8 @@ def spv(file):
         # print(hashgen)
     return hashgen
 
-# part 2
+# ------------------------------------ PART 2 -------------------------------------------------
+
 def fullnode(file):
     data = readFile(file)
     i = int(data.pop(0))

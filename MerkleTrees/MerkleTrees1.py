@@ -18,13 +18,14 @@ def spv(file):
 # part 2
 def fullnode(file):
     data = readFile(file)
-    i = data.pop(0)
-    j = data.pop(0)
+    i = int(data.pop(0))
+    j = int(data.pop(0))
 
     leaves = [Node(name) for name in data]
 
     root = buildTree(leaves)
-    return leaves, root
+    pathnode = getPathNode(leaves, i, j)
+    return leaves, pathnode, root
 
 def buildTree(layerNodes):
     if len(layerNodes) == 1:
@@ -69,6 +70,16 @@ class Node:
     def setSibling(self, node):
         self.sibling = node
 
+def getPathNode(tree, leafIndex, nodeIndex):
+
+    node = tree[leafIndex]
+    merklepath = []
+    while node.parent != None:
+        merklepath.append(node.pos + node.name)
+        node = node.parent
+    print(merklepath)
+    return merklepath[::-1][nodeIndex - 1]
+
 # för skojs skull ------------------------------------
 def printTree(nodes):
     indent = (int(len(nodes[0].name)/2) + 4) * " "
@@ -94,6 +105,6 @@ if __name__ == "__main__":
     # print("Merkle root:", spv("data"))
 
     # part 2
-    tree, root = fullnode("fullnode_data")
-    printTree(tree)
+    tree, pathnode, root = fullnode("fullnode_data")
     print("\nRoot:", root)
+    print("Merkele path node || root:", pathnode + root)

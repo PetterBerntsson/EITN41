@@ -103,7 +103,7 @@ def printLayer(nodes, level, indent):
 
 if __name__ == "__main__":
     # part 1
-    # print("Merkle root:", spv("data"))
+    print("Merkle root:", spv("data"))
 
     # part 2
     tree, pathnode, root = fullnode("fullnode_data")

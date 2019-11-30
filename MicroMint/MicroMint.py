@@ -3,16 +3,16 @@ from random import random
 coin_dict = {}
 
 # bits per coin
-u = 20
+u = 17
 
 # pre-images needed per coin (bucket depth)
-k = 7
+k = 5
 
 # coins to generate
-c = 10000
+c = 1
 
 # acceptable standard deviation
-s = 4783
+s = 2590
 
 def main():
 

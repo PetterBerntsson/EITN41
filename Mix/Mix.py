@@ -6,7 +6,10 @@ import re
 testcap = open('cia.log.1337.pcap', 'rb')
 capfile = savefile.load_savefile(testcap, layers=2, verbose=True)
 
-nazirIP = "159.237.13.37"
+#nazirIP = "159.237.13.37"
+#mixIP = "94.147.150.188"
+
+nazirIP = "161.53.13.37"
 mixIP = "11.192.206.171"
 nbrPartners = 2
 
@@ -15,7 +18,7 @@ old_ip_dst = ""
 old_ip_src = ""
 batch_set = set()
 source_set = set()
-
+new_batch = False
 
 for pkt in capfile.packets:
 
@@ -27,20 +30,22 @@ for pkt in capfile.packets:
     ip_src = pkt.packet.payload.src.decode('UTF8')
     ip_dst = pkt.packet.payload.dst.decode('UTF8')
 
-    if ip_src == old_ip_src:
-        batch_set.add(ip_dst)
-    elif ip_dst == old_ip_dst:
-        source_set.add(ip_src)
-    elif ip_src == old_ip_dst:
-        batch_set.add(ip_dst)
-    elif old_ip_src == ip_dst:
-        if nazirIP in source_set:
-            long_set.append(batch_set.copy())
-        batch_set.clear()
-        source_set.clear()
 
-    old_ip_dst = ip_dst
-    old_ip_src = ip_src
+    if ip_dst == mixIP:
+        if new_batch:
+            # We will see if the batch is worth adding to the collection
+            if nazirIP in source_set:
+                long_set.append(batch_set.copy())
+            batch_set.clear()
+            source_set.clear()
+            new_batch = False
+        source_set.add(ip_src)
+    elif ip_src == mixIP:
+
+        # Some sort of trigger for the new batch, though the new batch started earlier
+        new_batch = True
+        batch_set.add(ip_dst)
+
 
     #print('{}\t\t{}\t{}\t{}\t{}'.format(timestamp, eth_src, eth_dst, ip_src, ip_dst))
 
@@ -61,7 +66,6 @@ while progress:
             intersect_set = batch.intersection(intersect_set)
         else:
             disjoint_sets.append(batch.copy())
-
     partners_set.append(intersect_set.copy())
     intersect_set.clear()
     long_set.clear()
@@ -78,7 +82,7 @@ partners = list()
 for unit_set in partners_set:
     partners.append(next(iter(unit_set)))
 
-
+print("Number partners: " + str(len(partners)))
 ip_lists = list()
 ip_hex = ""
 dec_sum = 0

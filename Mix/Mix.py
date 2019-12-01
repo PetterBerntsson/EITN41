@@ -3,15 +3,29 @@
 from pcapfile import savefile
 import re
 
-testcap = open('cia.log.1337.pcap', 'rb')
-capfile = savefile.load_savefile(testcap, layers=2, verbose=True)
+test = 2
 
-#nazirIP = "159.237.13.37"
-#mixIP = "94.147.150.188"
+if test == 1:
+    testcap = open('cia.log.1337.pcap', 'rb')
+    capfile = savefile.load_savefile(testcap, layers=2, verbose=True)
+    testcap.close()
 
-nazirIP = "161.53.13.37"
-mixIP = "11.192.206.171"
-nbrPartners = 2
+    nazirIP = "159.237.13.37"
+    mixIP = "94.147.150.188"
+
+    nbrPartners = 2
+
+
+else:
+
+    testcap = open('cia.log.1339.pcap', 'rb')
+    capfile = savefile.load_savefile(testcap, layers=2, verbose=True)
+    testcap.close()
+
+    nazirIP = "161.53.13.37"
+    mixIP = "11.192.206.171"
+    nbrPartners = 12
+
 
 long_set = list()
 old_ip_dst = ""
@@ -45,41 +59,50 @@ for pkt in capfile.packets:
         # Some sort of trigger for the new batch, though the new batch started earlier
         new_batch = True
         batch_set.add(ip_dst)
-
+# Last batch is skipped otherwise
+if nazirIP in source_set:
+    long_set.append(batch_set)
 
     #print('{}\t\t{}\t{}\t{}\t{}'.format(timestamp, eth_src, eth_dst, ip_src, ip_dst))
 
-intersect_set = set()
-disjoint_sets = list()
-partners_set = list()
-progress = True
-while progress:
+long_set_copy = long_set.copy()
+check_set = long_set_copy.pop(0)
+union_set = check_set.copy()
+mes_list = list()
+mes_list.append(check_set)
 
-    # we may have several disjoint sets, so we need to check if we make any progress
-    progress = False
-    intersect_set = long_set.pop(0)
+for batch in long_set_copy:
+    if union_set.isdisjoint(batch):
+        union_set = union_set.union(batch)
+        mes_list.append(batch)
+        check_set = batch.copy()
+        nbrPartners -= 1
+
+    if nbrPartners == 0:
+        break
+print("Number ME sets: " + str(len(mes_list)))
+
+singleton_list = list()
+
+for mes_set in mes_list:
+
+    # For some reason, you cant mutate a set you iterate
+    temp_mes_set = mes_set.copy()
+
+    rest_union = union_set.symmetric_difference(temp_mes_set.copy())
 
     for batch in long_set:
+        if batch.isdisjoint(rest_union):
+            temp_mes_set = temp_mes_set.intersection(batch)
 
-        if not batch.isdisjoint(intersect_set):
-            progress = True
-            intersect_set = batch.intersection(intersect_set)
-        else:
-            disjoint_sets.append(batch.copy())
-    partners_set.append(intersect_set.copy())
-    intersect_set.clear()
-    long_set.clear()
 
-    # no more disjoint sets, but we still made progress, so break
-    if len(disjoint_sets) == 0:
-        break
-    long_set = disjoint_sets.copy()
-    disjoint_sets.clear()
+    singleton_list.append(temp_mes_set)
+
 
 
 partners = list()
 
-for unit_set in partners_set:
+for unit_set in singleton_list:
     partners.append(next(iter(unit_set)))
 
 print("Number partners: " + str(len(partners)))
@@ -98,6 +121,9 @@ for partner in partners:
     ip_hex = ""
 
 print(dec_sum)
+
+
+
 
 
 print("-----------------------------------------------------------------------------------------------------")

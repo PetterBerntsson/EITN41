@@ -1,101 +1,98 @@
-import random
-
 from pcapfile import savefile
 
-testcap = open('cia.log.1339.pcap', 'rb')
-capfile = savefile.load_savefile(testcap, layers=2, verbose=True)
-testcap.close()
+
+file_path ='cia.log.3.pcap'
+
 
 # nazirIP = "159.237.13.37"
 # mixIP = "94.147.150.188"
 # nbrPartners = 2
 
-nazirIP = "161.53.13.37"
-mixIP = "11.192.206.171"
-nbrPartners = 12
+nazirIP = "61.152.13.37"
+mixIP = "95.235.155.122"
+nbrPartners = 8
 
-# print the packets
-# print ('timestamp\teth src\t\t\teth dst\t\t\tIP src\t\tIP dst')
-# for pkt in capfile.packets:
-#     timestamp = pkt.timestamp
-#     # all data is ASCII encoded (byte arrays). If we want to compare with strings
-#     # we need to decode the byte arrays into UTF8 coded strings
-#     eth_src = pkt.packet.src.decode('UTF8')
-#     eth_dst = pkt.packet.dst.decode('UTF8')
-#     ip_src = pkt.packet.payload.src.decode('UTF8')
-#     ip_dst = pkt.packet.payload.dst.decode('UTF8')
-#     print ('{}\t\t{}\t{}\t{}\t{}'.format(timestamp, eth_src, eth_dst, ip_src, ip_dst))
 
-batchesFromMix = []
-allBatchesFromMix = []
-batchFromMix = set()
-nazirPackage = False
-for pkt in capfile.packets:
-    if pkt.packet.payload.src.decode('UTF8') == mixIP:
-        batchFromMix.add(pkt.packet.payload.dst.decode('UTF8'))
-    else:
-        if pkt.packet.payload.src.decode('UTF8') == nazirIP:
-            nazirPackage = True
-        if batchFromMix:
-            allBatchesFromMix.append(batchFromMix)
-            if nazirPackage:
-                batchesFromMix.append(batchFromMix)
-            batchFromMix = set()
-            nazirPackage = False
-# end case
-if batchFromMix and nazirPackage:
-    batchesFromMix.append(batchFromMix)
+long_set = list()
+batch_set = set()
+source_set = set()
+new_batch = False
+# --------------------------------------- LEARNING PHASE --------------------------------------------------------------
+# --------------------------------------- LOAD BATCHES
+with open(file_path, 'rb') as testcap:
+    capfile = savefile.load_savefile(testcap, layers=2, verbose=True)
+    testcap.close()
+    for pkt in capfile.packets:
+
+        timestamp = pkt.timestamp
+        # all data is ASCII encoded (byte arrays). If we want to compare with strings
+        # we need to decode the byte arrays into UTF8 coded strings
+        eth_src = pkt.packet.src.decode('UTF8')
+        eth_dst = pkt.packet.dst.decode('UTF8')
+        ip_src = pkt.packet.payload.src.decode('UTF8')
+        ip_dst = pkt.packet.payload.dst.decode('UTF8')
+
+        if ip_dst == mixIP:
+            if new_batch:
+                # We will see if the batch is worth adding to the collection
+                if nazirIP in source_set:
+                    long_set.append(batch_set.copy())
+                batch_set.clear()
+                source_set.clear()
+                new_batch = False
+            source_set.add(ip_src)
+        elif ip_src == mixIP:
+
+            # Some sort of trigger for the new batch, though the new batch started earlier
+            new_batch = True
+            batch_set.add(ip_dst)
+    # Last batch is skipped otherwise
+    if nazirIP in source_set:
+        long_set.append(batch_set.copy())
 
 #------------create disjoint set----------------------
 
-unionBatch = batchesFromMix.copy().pop(0)
-disjointList = [unionBatch]
-for batch in batchesFromMix:
-    if len(disjointList) == nbrPartners:
+
+# Create Mutually Exclusive Sets
+union_set = long_set.copy().pop(0)
+disjoint_sets = [union_set]
+for batch in long_set:
+    if len(disjoint_sets) == nbrPartners:
         break
-    if unionBatch.isdisjoint(batch):
-        disjointList.append(batch)
-        unionBatch = unionBatch.union(batch)
+    elif union_set.isdisjoint(batch):
+        disjoint_sets.append(batch)
+        union_set = union_set.union(batch)
 
-#------------reduce---------------------------------
 
-# for x, rx in enumerate(disjointList):
-#     # print("---------------------")
-#     restUnion = unionBatch ^ rx
+partners = list()
 
-#     for r in batchesFromMix:
-#         if r.isdisjoint(restUnion) and rx.intersection(r):
-#             rx = rx.intersection(r)
-#             disjointList[x] = rx
-#             # print(len(rx))
 
-#----------------------------------------------------
 
-for r in batchesFromMix:
-    for x, rx in enumerate(disjointList):
+for r in long_set:
+    for i, ri in enumerate(disjoint_sets):
         disjoint = True
 
-        if rx.intersection(r):
+        if ri.intersection(r):
 
-            for rj in disjointList:
-                if rj == rx:
-                    continue
+            #rest_union = union_set.difference(ri)
 
-                if not r.isdisjoint(rj):
+            for rj in disjoint_sets:
+
+                if not r.isdisjoint(rj) and not rj == ri:
                     disjoint = False
 
             if disjoint:
-                rx = rx.intersection(r)
-                disjointList[x] = rx
+                ri = ri.intersection(r)
+                disjoint_sets[i] = ri
     
     done = True
-    for batch in disjointList:
+    for batch in disjoint_sets:
         if len(batch) != 1:
             done = False
     if done:
         break
 
-for disj in disjointList:
+for disj in disjoint_sets:
     print("'Singleton' length:", len(disj), disj)
 
 
@@ -104,7 +101,9 @@ for disj in disjointList:
 
 
 dec_sum = 0
-for singelton in disjointList:
+
+# Should be a Singleton at this point, otherwise input data is too small
+for singelton in disjoint_sets:
     partner = next(iter(singelton))
 
     ipSplit = partner.split(".")

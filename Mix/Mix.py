@@ -35,7 +35,6 @@ with open(filepath, 'rb') as testcap:
         ip_src = pkt.packet.payload.src.decode('UTF8')
         ip_dst = pkt.packet.payload.dst.decode('UTF8')
 
-
         if ip_dst == mixIP:
             if new_batch:
                 # We will see if the batch is worth adding to the collection
@@ -52,21 +51,20 @@ with open(filepath, 'rb') as testcap:
             batch_set.add(ip_dst)
     # Last batch is skipped otherwise
     if nazirIP in source_set:
-        long_set.append(batch_set)
+        long_set.append(batch_set.copy())
 
 
 # --------------------------------------- SECOND PART OF LEARNING PHASE------------------------------------------------
-long_set_copy = long_set.copy()
-check_set = long_set_copy.pop(0)
-union_set = check_set.copy()
+# We have to start with some set
+first_set = long_set.copy().pop(0)
+union_set = first_set.copy()
 mes_list = list()
-mes_list.append(check_set)
-# --------------------------------------- GET Number DISJOINT SETS = Number Partners
-for batch in long_set_copy:
+mes_list.append(first_set.copy())
+# --------------------------------------- GET (NUMBER PARTNERS) DISJOINT SETS
+for batch in long_set:
     if union_set.isdisjoint(batch):
         union_set = union_set.union(batch)
         mes_list.append(batch)
-        check_set = batch
         nbrPartners -= 1
 
     if nbrPartners == 0:
@@ -74,25 +72,26 @@ for batch in long_set_copy:
 
 # --------------------------------------- RUN INTERSECTIONS -----------------------------------------------------------
 partners = list()
+# All sets in mes_list have been verified mutually exclusive
 
 # Problem originating from this function!!!
-for mes_set in mes_list:
 
+for mes in mes_list:
     # For some reason, you cant mutate a set that is part of a list that you iterate
-    temp_mes_set = mes_set.copy()
-    rest_union = union_set.difference(temp_mes_set)
-
+    temp_mes = mes.copy()
+    rest_union = union_set.difference(temp_mes)
     for batch in long_set:
 
-        # checks if batch is disjoint from all other mutually exclusive sets
-        if batch.isdisjoint(rest_union):
-            temp_mes_set.intersection_update(batch)
+        # checks if batch is disjoint from all other mutually exclusive sets & that its not disjoint from current MES
+        if batch.isdisjoint(rest_union) and batch.intersection(temp_mes):
+            temp_mes.intersection_update(batch)
 
-    partners.append(temp_mes_set.copy())
+    partners.append(temp_mes.copy())
 
 partners_final = list()
 
 for partner in partners:
+    print(len(partner))
     for element in partner:
         partners_final.append(element)
 
@@ -104,9 +103,15 @@ dec_sum = 0
 
 for partner in partners_final:
     ip_list = partner.split(".")
+    temp_hex = ""
 
     for ip_nbr in ip_list:
-        ip_hex = ip_hex + hex(int(ip_nbr))[2:]
+        if len(hex(int(ip_nbr))[2:]) == 1:
+            temp_hex = "0" + hex(int(ip_nbr))[2:]
+        else:
+            temp_hex = hex(int(ip_nbr))[2:]
+
+        ip_hex = ip_hex + temp_hex
 
     dec_sum = dec_sum + int("0x" + ip_hex, 16)
     ip_hex = ""

@@ -17,13 +17,11 @@ else:
     nbrPartners = 12
 
 long_set = list()
-old_ip_dst = ""
-old_ip_src = ""
 batch_set = set()
 source_set = set()
 new_batch = False
-
-# --------------------------------------- LOAD BATCHES ----------------------------------------------------------------
+# --------------------------------------- LEARNING PHASE --------------------------------------------------------------
+# --------------------------------------- LOAD BATCHES
 with open(filepath, 'rb') as testcap:
     capfile = savefile.load_savefile(testcap, layers=2, verbose=True)
     testcap.close()
@@ -36,6 +34,7 @@ with open(filepath, 'rb') as testcap:
         eth_dst = pkt.packet.dst.decode('UTF8')
         ip_src = pkt.packet.payload.src.decode('UTF8')
         ip_dst = pkt.packet.payload.dst.decode('UTF8')
+
 
         if ip_dst == mixIP:
             if new_batch:
@@ -55,43 +54,55 @@ with open(filepath, 'rb') as testcap:
     if nazirIP in source_set:
         long_set.append(batch_set)
 
+
 # --------------------------------------- SECOND PART OF LEARNING PHASE------------------------------------------------
 long_set_copy = long_set.copy()
 check_set = long_set_copy.pop(0)
 union_set = check_set.copy()
 mes_list = list()
 mes_list.append(check_set)
-# --------------------------------------- GET Number DISJOINT SETS = Number Partners ----------------------------------
+# --------------------------------------- GET Number DISJOINT SETS = Number Partners
 for batch in long_set_copy:
     if union_set.isdisjoint(batch):
         union_set = union_set.union(batch)
         mes_list.append(batch)
-        check_set = batch.copy()
+        check_set = batch
         nbrPartners -= 1
 
     if nbrPartners == 0:
         break
+
 # --------------------------------------- RUN INTERSECTIONS -----------------------------------------------------------
 partners = list()
 
+# Problem originating from this function!!!
 for mes_set in mes_list:
 
     # For some reason, you cant mutate a set that is part of a list that you iterate
     temp_mes_set = mes_set.copy()
-    rest_union = union_set.symmetric_difference(temp_mes_set.copy())
+    rest_union = union_set.difference(temp_mes_set)
 
     for batch in long_set:
-        if batch.isdisjoint(rest_union):
-            temp_mes_set = temp_mes_set.intersection(batch)
 
-    partners.append(next(iter(temp_mes_set)))
+        # checks if batch is disjoint from all other mutually exclusive sets
+        if batch.isdisjoint(rest_union):
+            temp_mes_set.intersection_update(batch)
+
+    partners.append(temp_mes_set.copy())
+
+partners_final = list()
+
+for partner in partners:
+    for element in partner:
+        partners_final.append(element)
+
 
 # --------------------------------------- SUM HEX VALUES AND PRINT DECIMAL VALUE --------------------------------------
 ip_lists = list()
 ip_hex = ""
 dec_sum = 0
 
-for partner in partners:
+for partner in partners_final:
     ip_list = partner.split(".")
 
     for ip_nbr in ip_list:

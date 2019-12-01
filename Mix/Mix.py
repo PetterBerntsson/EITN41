@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from pcapfile import savefile
+import re
 
 testcap = open('cia.log.1337.pcap', 'rb')
 capfile = savefile.load_savefile(testcap, layers=2, verbose=True)
@@ -9,19 +10,91 @@ nazirIP = "159.237.13.37"
 mixIP = "11.192.206.171"
 nbrPartners = 2
 
-# print the packets
-# print ('timestamp\teth src\t\t\teth dst\t\t\tIP src\t\tIP dst')
-# for pkt in capfile.packets:
-#     timestamp = pkt.timestamp
-#     # all data is ASCII encoded (byte arrays). If we want to compare with strings
-#     # we need to decode the byte arrays into UTF8 coded strings
-#     eth_src = pkt.packet.src.decode('UTF8')
-#     eth_dst = pkt.packet.dst.decode('UTF8')
-#     ip_src = pkt.packet.payload.src.decode('UTF8')
-#     ip_dst = pkt.packet.payload.dst.decode('UTF8')
-#     print ('{}\t\t{}\t{}\t{}\t{}'.format(timestamp, eth_src, eth_dst, ip_src, ip_dst))
+long_set = list()
+old_ip_dst = ""
+old_ip_src = ""
+batch_set = set()
+source_set = set()
+
 
 for pkt in capfile.packets:
-    print(type(pkt.packet.src.decode("UTF8")))
-    if pkt.packet.src.decode("UTF8") == nazirIP:
-        print(pkt.packet.dst.decode("UTF8"))
+
+    timestamp = pkt.timestamp
+    # all data is ASCII encoded (byte arrays). If we want to compare with strings
+    # we need to decode the byte arrays into UTF8 coded strings
+    eth_src = pkt.packet.src.decode('UTF8')
+    eth_dst = pkt.packet.dst.decode('UTF8')
+    ip_src = pkt.packet.payload.src.decode('UTF8')
+    ip_dst = pkt.packet.payload.dst.decode('UTF8')
+
+    if ip_src == old_ip_src:
+        batch_set.add(ip_dst)
+    elif ip_dst == old_ip_dst:
+        source_set.add(ip_src)
+    elif ip_src == old_ip_dst:
+        batch_set.add(ip_dst)
+    elif old_ip_src == ip_dst:
+        if nazirIP in source_set:
+            long_set.append(batch_set.copy())
+        batch_set.clear()
+        source_set.clear()
+
+    old_ip_dst = ip_dst
+    old_ip_src = ip_src
+
+    #print('{}\t\t{}\t{}\t{}\t{}'.format(timestamp, eth_src, eth_dst, ip_src, ip_dst))
+
+intersect_set = set()
+disjoint_sets = list()
+partners_set = list()
+progress = True
+while progress:
+
+    # we may have several disjoint sets, so we need to check if we make any progress
+    progress = False
+    intersect_set = long_set.pop(0)
+
+    for batch in long_set:
+
+        if not batch.isdisjoint(intersect_set):
+            progress = True
+            intersect_set = batch.intersection(intersect_set)
+        else:
+            disjoint_sets.append(batch.copy())
+
+    partners_set.append(intersect_set.copy())
+    intersect_set.clear()
+    long_set.clear()
+
+    # no more disjoint sets, but we still made progress, so break
+    if len(disjoint_sets) == 0:
+        break
+    long_set = disjoint_sets.copy()
+    disjoint_sets.clear()
+
+
+partners = list()
+
+for unit_set in partners_set:
+    partners.append(next(iter(unit_set)))
+
+
+ip_lists = list()
+ip_hex = ""
+dec_sum = 0
+
+for partner in partners:
+    ip_list = partner.split(".")
+
+    for ip_nbr in ip_list:
+        ip_hex = ip_hex + hex(int(ip_nbr))[2:]
+
+
+    dec_sum = dec_sum + int("0x" + ip_hex, 16)
+    ip_hex = ""
+
+print(dec_sum)
+
+
+print("-----------------------------------------------------------------------------------------------------")
+print('timestamp\t\teth src\t\t\teth dst\t\t\tIP src\t\tIP dst')

@@ -1,3 +1,5 @@
+# Function has problems, Mix1 is working solution
+
 from pcapfile import savefile
 import sys
 import re

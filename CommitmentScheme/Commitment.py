@@ -34,5 +34,5 @@ for i in range(len(collisions_arr)):
     print("X length = " + str(i) + " - " + "Number collisions = " + str(collisions_arr.pop()))
 
 
-
+# yaas queen!
 # To break the binding property, we need to find a value k, where h(0,k) = h(1,k) Probably a false statement though

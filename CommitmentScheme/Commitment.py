@@ -33,7 +33,7 @@ for x_length in range(x_limit):
     collisions = 0
 
 for i in range(len(collisions_arr)):
-    print("X length = " + str(i) + " - " + "Number collisions = " + str(collisions_arr.pop()))
+    print("X length = " + str(i) + " - " + "Number collisions = " + str(collisions_arr.pop(0)))
 
 
 # yaas queen!

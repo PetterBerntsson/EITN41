@@ -10,7 +10,7 @@ k_limit = 16
 x_limit = 16
 
 concat = ""
-dict = defaultdict(int)
+coll_dict = defaultdict(int)
 collisions_arr = list()
 collisions = 0
 
@@ -20,12 +20,12 @@ for x_length in range(x_limit):
         concat = str(v) + " " + str(k)
 
         hash = hashlib.sha1(concat.encode()).hexdigest()[:x_length]
-        dict[hash] += 1
+        coll_dict[hash] += 1
 
 
-    for key in dict:
-        if dict.get(key) > 1:
-            collisions+=1
+    for key in coll_dict:
+        if coll_dict.get(key) > 1:
+            collisions+=coll_dict.get(key)
 
     collisions_arr.append(collisions)
     collisions = 0

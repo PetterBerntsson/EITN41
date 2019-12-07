@@ -13,20 +13,22 @@ concat = ""
 coll_dict = defaultdict(int)
 collisions_arr = list()
 collisions = 0
+hash_res = ""
 
 for x_length in range(x_limit):
     for k in range(2**k_limit):
 
         concat = str(v) + " " + str(k)
 
-        hash = hashlib.sha1(concat.encode()).hexdigest()[:x_length]
-        coll_dict[hash] += 1
-
+        hash_res = hashlib.sha1(concat.encode()).hexdigest()[:x_length]
+        coll_dict[hash_res] += 1
 
     for key in coll_dict:
         if coll_dict.get(key) > 1:
-            collisions+=coll_dict.get(key)
+            collisions += coll_dict.get(key)
 
+    coll_dict.clear()
+    coll_dict = defaultdict(int)
     collisions_arr.append(collisions)
     collisions = 0
 

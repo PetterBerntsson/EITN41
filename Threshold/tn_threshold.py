@@ -38,7 +38,7 @@ def interpolation(x, x_vals, y_vals):
 
 
 # Truncates decimals
-print("-"*20)
+print("-"*23)
 deactivation_code = interpolation(0, x_vals, y_vals)
-print("Deactivation Code: " + str(deactivation_code).split(".").pop(0))
-print("-"*20)
+print("Deactivation Code: " + str(round(deactivation_code)))
+print("-"*23)

@@ -2,33 +2,27 @@ import math
 import hashlib
 
 
-mgfSeed = '0123456789abcdef'
-maskLen = 30
-
-# hLen = 20 for SHA-1
-hLen = 20
-
-
 # implemented according to https://tools.ietf.org/html/rfc8017#appendix-B.2.1
 def mgf1(mgfSeed, maskLen):
-
     t = ''
 
-    for counter in range(math.ceil(maskLen/hLen)):
+    if maskLen > ((2 ** 32) * hLen):
+        raise ValueError("mask too long")
 
+    for counter in range(math.ceil(maskLen / hLen)):
         # xLen is always 4
         c = i2osp(counter, 4)
         concat = mgfSeed + c
 
         t = t + hashlib.sha1(bytearray.fromhex(concat)).hexdigest()
 
-    return t[:maskLen*2]
+    return t[:maskLen * 2]
 
 
 # implemented according to https://tools.ietf.org/html/rfc8017#section-4.1
 # modified to return hex string representation
 def i2osp(x, xLen):
-    if x >= 256**xLen:
+    if x >= 256 ** xLen:
         raise ValueError("integer too large")
     digits = []
 
@@ -52,4 +46,51 @@ def i2osp(x, xLen):
 
     return tot_hex_string
 
-print(mgf1(mgfSeed, maskLen))
+# implemented according to https://tools.ietf.org/html/rfc8017#section-7.1.1
+def oaep_encode(message, seed, L):
+    if len(L) > (2**61 - 1):
+        raise ValueError("label too long")
+    if len(message) > (k - 2*hLen - 2):
+        raise ValueError("message too long")
+
+    if L == None:
+        L = ''
+
+    lHash = hashlib.sha1(bytearray.fromhex(L)).hexdigest()
+    PS = "".zfill((k - int(len(message)/2) - 2*hLen - 2)*2)
+
+    DB = lHash + PS + '01' + message
+
+    dbMask = mgf1(str(seed), k-hLen-1)
+    maskedDB = hex(int(DB, 16)^int(dbMask, 16))[2:]
+
+    seedMask = mgf1(str(maskedDB), hLen)
+    maskedSeed = hex(int(str(seed), 16)^int(str(seedMask), 16))[2:]
+
+    EM = '00' + str(maskedSeed) + str(maskedDB)
+    EM.zfill(256)
+    return EM[:256]
+
+    print(EM)
+
+
+def oaep_decode(encrypted_message):
+    print("decode")
+
+
+#----------------------------------- Test Values ----------------------------------------------------------------------
+mgfSeed = '0123456789abcdef'
+maskLen = 30
+
+# hLen = 20 for SHA-1
+hLen = 20
+
+# default value for L
+L = ''
+
+k = 128
+message = 'fd5507e917ecbe833878'
+seed = '1e652ec152d0bfcd65190ffc604c0933d0423381'
+#----------------------------------------------------------------------------------------------------------------------
+
+print(oaep_encode(mgfSeed, maskLen, L))

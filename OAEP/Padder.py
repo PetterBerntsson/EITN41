@@ -46,8 +46,10 @@ def i2osp(x, xLen):
 
     return tot_hex_string
 
+
 # implemented according to https://tools.ietf.org/html/rfc8017#section-7.1.1
 def oaep_encode(message, seed, L):
+
     if len(L) > (2**61 - 1):
         raise ValueError("label too long")
     if len(message) > (k - 2*hLen - 2):
@@ -56,22 +58,19 @@ def oaep_encode(message, seed, L):
     if L == None:
         L = ''
 
-    lHash = hashlib.sha1(bytearray.fromhex(L)).hexdigest()
-    PS = "".zfill((k - int(len(message)/2) - 2*hLen - 2)*2)
+    lhash = hashlib.sha1(bytearray.fromhex(L)).hexdigest()
+    ps = "".zfill((k - int(len(message)/2) - 2*hLen - 2)*2)
 
-    DB = lHash + PS + '01' + message
+    db = lhash + ps + '01' + message
 
-    dbMask = mgf1(str(seed), k-hLen-1)
-    maskedDB = hex(int(DB, 16)^int(dbMask, 16))[2:]
+    db_mask = mgf1(str(seed), k-hLen-1)
+    masked_db = hex(int(db, 16) ^ int(db_mask, 16))[2:]
 
-    seedMask = mgf1(str(maskedDB), hLen)
-    maskedSeed = hex(int(str(seed), 16)^int(str(seedMask), 16))[2:]
+    seed_mask = mgf1(str(masked_db), hLen)
+    masked_seed = hex(int(str(seed), 16) ^ int(str(seed_mask), 16))[2:]
 
-    EM = '00' + str(maskedSeed) + str(maskedDB)
-    EM.zfill(256)
-    return EM[:256]
-
-    print(EM)
+    em = '00' + str(masked_seed) + str(masked_db)
+    return EM.zfill(256)
 
 
 def oaep_decode(encrypted_message):
@@ -86,11 +85,11 @@ maskLen = 30
 hLen = 20
 
 # default value for L
-L = ''
+L = ""
 
 k = 128
 message = 'fd5507e917ecbe833878'
 seed = '1e652ec152d0bfcd65190ffc604c0933d0423381'
 #----------------------------------------------------------------------------------------------------------------------
 
-print(oaep_encode(mgfSeed, maskLen, L))
+print(oaep_encode(message, seed, L))

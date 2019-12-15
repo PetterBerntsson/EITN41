@@ -126,7 +126,5 @@ seed = '58b2ec96cf9cb1f9f4dab72fde2b8588381d7244'
 out = oaep_decode(encoded_message, L)
 #out = oaep_encode(message, seed, L)
 
-
-
 with open('out.txt', 'w') as file:
     file.write(str(out))

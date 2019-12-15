@@ -89,7 +89,7 @@ def oaep_decode(encrypted_message, L):
 
     # DB = lHash' || PS || 0x01 || M
 
-    # check lHash' == lHash, else error has occured
+    # check lHash' == lHash, else error has occurred
     if not db[:hLen*2] == lhash:
         raise ValueError("Hashes do not match")
 
@@ -121,4 +121,29 @@ seed = '1e652ec152d0bfcd65190ffc604c0933d0423381'
 #----------------------------------------------------------------------------------------------------------------------
 
 em = oaep_encode(message, seed, L)
-print(oaep_decode(em, L))
+dm = oaep_decode(em, L)
+
+print("\nOriginal Message:")
+print("-"*40 + "\n")
+print(message + "\n")
+print("-"*40)
+print("\nEncoded Message:")
+print("-"*40 + "\n")
+print(em + "\n")
+print("-"*40)
+print("\nDecoded Message:")
+print("-"*40 + "\n")
+print(dm + "\n")
+print("-"*40)
+
+if message == dm:
+    print("\nEncoding-Decoding Successful")
+else:
+    print("\nEncoding-Decoding Unsuccessful")
+
+with open('out.txt', 'w') as out:
+    out.write("Encoded message:\n")
+    out.write(em)
+    out.write("\n")
+    out.write("Decoded message:\n")
+    out.write(dm)

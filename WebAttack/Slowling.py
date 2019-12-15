@@ -6,6 +6,7 @@ import requests
 import time
 import logging
 
+# Couldn't supress 'requests' output, try somethig different
 logging.getLogger("requests").setLevel(logging.FATAL)
 
 host = 'https://eitn41.eit.lth.se'
@@ -33,9 +34,10 @@ for i in range(signature_length):
     for i in range(base):
 
         sig_val = hex(i)[2:]
-        print("Sig val: " + sig_val)
 
         request_time = time.time()
+
+        # SSL verification is disabled
         r = requests.get(host + ':' + port + resource + 'name=' + name + '&grade=' + grade + '&signature=' + signature + sig_val, verify=False)
         response_time = time.time()
 
@@ -49,10 +51,12 @@ for i in range(signature_length):
             max_index = item[1]
 
     signature = signature + str(hex(max_index)[2:][:1])
+
+    # Current signature is printed, may be interesting
     print(signature)
 
 
-# Final request is done, if response = 1, then the signature is correct
+# Final request is done, if response = b'\n1', then the signature is correct, otherwise signature is not accepted
 r = requests.get(host + ':' + port + resource + 'name=' + name + '&grade=' + grade + '&signature=' + signature, verify=False)
 print(r.content)
 

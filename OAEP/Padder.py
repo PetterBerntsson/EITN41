@@ -73,8 +73,36 @@ def oaep_encode(message, seed, L):
     return em.zfill(256)
 
 
-def oaep_decode(encrypted_message):
-    print("decode")
+# implemented according to https://tools.ietf.org/html/rfc8017#section-7.1.2
+def oaep_decode(encrypted_message, L):
+    lhash = hashlib.sha1(bytearray.fromhex(L)).hexdigest()
+
+    # EM = Y || maskedSeed || maskedDB
+    y = encrypted_message[:2]
+    masked_seed = encrypted_message[2:42]
+    masked_db = encrypted_message[42:]
+    seed_mask = mgf1(masked_db, hLen)
+    seed = hex(int(masked_seed, 16) ^int(seed_mask, 16))[2:]
+    db_mask = mgf1(seed, k - hLen - 1)
+
+    db = hex(int(masked_db, 16) ^int(db_mask, 16))[2:]
+
+    # DB = lHash' || PS || 0x01 || M
+
+    # check lHash' == lHash, else error has occured
+    if not db[:hLen*2] == lhash:
+        raise ValueError("Hashes do not match")
+
+    padded_message = db[hLen*2:]
+
+    # PS can be empty, so we iterate to find 0x01, our message should lie beyond this point
+    # padded_message = PS || 0x01 || M
+    for i in range(len(padded_message)):
+        if padded_message[i:i+2] == '01':
+            return padded_message[i+2:]
+
+    # if we reach this point, something went wrong
+    raise ValueError("Could not decrypt")
 
 
 #----------------------------------- Test Values ----------------------------------------------------------------------
@@ -92,4 +120,5 @@ message = 'fd5507e917ecbe833878'
 seed = '1e652ec152d0bfcd65190ffc604c0933d0423381'
 #----------------------------------------------------------------------------------------------------------------------
 
-print(oaep_encode(message, seed, L))
+em = oaep_encode(message, seed, L)
+print(oaep_decode(em, L))

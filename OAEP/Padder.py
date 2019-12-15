@@ -106,8 +106,8 @@ def oaep_decode(encrypted_message, L):
 
 
 #----------------------------------- Test Values ----------------------------------------------------------------------
-mgfSeed = '0123456789abcdef'
-maskLen = 30
+mgfSeed = '46dad84c7fa3460344bda67c31e8f948addb0649f13b7509'
+maskLen = 24
 
 # hLen = 20 for SHA-1
 hLen = 20
@@ -116,34 +116,17 @@ hLen = 20
 L = ""
 
 k = 128
-message = 'fd5507e917ecbe833878'
-seed = '1e652ec152d0bfcd65190ffc604c0933d0423381'
+message = 'e79e5fb79ece9bd30699792ec38e927fa4c6e3c229503b3794'
+encoded_message = '00cbbfadbb0b9e0d96f094a3d6e552b4d82db3e4f4f9d3778a18b7aa067f90b2178406fa1e1bf77f03f86629dd5607d11b9961707736c2d16e7c668b367890bc6ef1745396404ba7832b1cdfb0388ef601947fc0aff1fd2dcd279dabdfcd92a7a13808d96ceea0a999a9947874a4741e7530bd99046c3368c6485702ea93ad95'
+seed = '58b2ec96cf9cb1f9f4dab72fde2b8588381d7244'
 #----------------------------------------------------------------------------------------------------------------------
 
-em = oaep_encode(message, seed, L)
-dm = oaep_decode(em, L)
+# Chose appropriate method
+#out = mgf1(mgfSeed, maskLen)
+out = oaep_decode(encoded_message, L)
+#out = oaep_encode(message, seed, L)
 
-print("\nOriginal Message:")
-print("-"*40 + "\n")
-print(message + "\n")
-print("-"*40)
-print("\nEncoded Message:")
-print("-"*40 + "\n")
-print(em + "\n")
-print("-"*40)
-print("\nDecoded Message:")
-print("-"*40 + "\n")
-print(dm + "\n")
-print("-"*40)
 
-if message == dm:
-    print("\nEncoding-Decoding Successful")
-else:
-    print("\nEncoding-Decoding Unsuccessful")
 
-with open('out.txt', 'w') as out:
-    out.write("Encoded message:\n")
-    out.write(em)
-    out.write("\n")
-    out.write("Decoded message:\n")
-    out.write(dm)
+with open('out.txt', 'w') as file:
+    file.write(str(out))

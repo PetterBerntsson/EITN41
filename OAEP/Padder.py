@@ -70,7 +70,7 @@ def oaep_encode(message, seed, L):
     masked_seed = hex(int(str(seed), 16) ^ int(str(seed_mask), 16))[2:]
 
     em = '00' + str(masked_seed) + str(masked_db)
-    return EM.zfill(256)
+    return em.zfill(256)
 
 
 def oaep_decode(encrypted_message):

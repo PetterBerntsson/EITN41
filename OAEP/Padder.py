@@ -15,14 +15,12 @@ def mgf1(mgfSeed, maskLen):
     t = ''
 
     for counter in range(math.ceil(maskLen/hLen)):
-        print("iteration: " + str(counter))
 
         # xLen is always 4
         c = i2osp(counter, 4)
-
         concat = mgfSeed + c
-        print(t)
-        t = t + hashlib.sha1(concat.encode()).hexdigest()
+
+        t = t + hashlib.sha1(bytearray.fromhex(concat)).hexdigest()
 
     return t[:maskLen*2]
 

@@ -1,0 +1,5 @@
+openssl cms -decrypt -in .\mail[X].msg -recip .\certreceiver.pem -inkey .\keyreceiver.pem -out mail[X]hash
+
+openssl cms -digest_verify -in .\mail[X]hash
+
+# -digest_verify returns the content of the hash and if it's valid
